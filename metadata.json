@@ -1,0 +1,6 @@
+{
+  "name": "متجر الزهور (Flower Shop)",
+  "description": "A flower shop web application with frontend and backend connected to Supabase.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
