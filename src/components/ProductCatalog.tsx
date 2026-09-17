@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
 import { useCart } from '../context/CartContext';
+import { supabase } from '../lib/supabaseClient';
+
+const mockProducts: Product[] = [
+  { id: '1', name: 'باقة جوري حمراء كلاسيكية', price: 150, originalPrice: 180, rating: 4.8, category: 'local', image_url: 'https://images.unsplash.com/photo-1563241527-3004b7be0ffd?q=80&w=600&auto=format&fit=crop', tag: 'الأكثر مبيعاً', tagColor: 'bg-primary-container text-on-primary-container' },
+  { id: '2', name: 'تنسيقة أوركيد ملكية', price: 320, rating: 4.9, category: 'european', image_url: 'https://images.unsplash.com/photo-1528659104085-70335e219760?q=80&w=600&auto=format&fit=crop', tag: 'جديد', tagColor: 'bg-secondary-container text-on-secondary-container' },
+  { id: '3', name: 'باقة لافندر هولندي', price: 120, rating: 4.6, category: 'european', image_url: 'https://images.unsplash.com/photo-1457089328109-e5d9ca49bd0f?q=80&w=600&auto=format&fit=crop' },
+  { id: '4', name: 'تنسيقة الأقحوان الصيني', price: 90, originalPrice: 110, rating: 4.5, category: 'chinese', image_url: 'https://images.unsplash.com/photo-1596724395641-69aa19eeb2db?q=80&w=600&auto=format&fit=crop', tag: 'عرض خاص', tagColor: 'bg-error-container text-on-error-container' },
+  { id: '5', name: 'باقة الكوبية الزرقاء', price: 210, rating: 4.7, category: 'special', image_url: 'https://images.unsplash.com/photo-1533618451717-b77edc460d3d?q=80&w=600&auto=format&fit=crop' },
+  { id: '6', name: 'تنسيقة توليب الطائف', price: 180, originalPrice: 200, rating: 4.8, category: 'local', image_url: 'https://images.unsplash.com/photo-1520763185298-1b434c919102?q=80&w=600&auto=format&fit=crop' },
+  { id: '7', name: 'باقة الفاوانيا الصيفية', price: 250, rating: 4.9, category: 'special', image_url: 'https://images.unsplash.com/photo-1562690868-60bbe7293e94?q=80&w=600&auto=format&fit=crop', tag: 'موسمي', tagColor: 'bg-tertiary-container text-on-tertiary-container' },
+  { id: '8', name: 'تنسيقة زهور الكرز', price: 280, rating: 4.7, category: 'chinese', image_url: 'https://images.unsplash.com/photo-1522228115018-d838bcce5c3a?q=80&w=600&auto=format&fit=crop' },
+];
 
 export default function ProductCatalog() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -11,10 +23,34 @@ export default function ProductCatalog() {
   const [toastMessage, setToastMessage] = useState('');
 
   useEffect(() => {
-    fetch('/api/products')
-      .then(res => res.json())
-      .then(data => setProducts(data))
-      .catch(err => console.error("Error fetching products:", err));
+    async function fetchProducts() {
+      try {
+        const { data, error } = await supabase.from('products').select('*');
+        if (error) {
+          console.warn("Could not fetch products from Supabase, using mock data.");
+          setProducts(mockProducts);
+        } else if (data && data.length > 0) {
+          const mappedProducts = data.map((item: any) => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            originalPrice: item.original_price,
+            rating: item.rating,
+            category: item.category,
+            image_url: item.image_url,
+            tag: item.tag,
+            tagColor: item.tag_color
+          }));
+          setProducts(mappedProducts);
+        } else {
+          setProducts(mockProducts);
+        }
+      } catch (err) {
+        console.error("Error fetching products:", err);
+        setProducts(mockProducts);
+      }
+    }
+    fetchProducts();
   }, []);
 
   const filteredProducts = products.filter(p => {

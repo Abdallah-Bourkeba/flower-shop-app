@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CartItem, Product, StoreSettings } from '../types';
+import { supabase } from '../lib/supabaseClient';
 
 interface CartContextType {
   cart: CartItem[];
@@ -21,15 +22,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<StoreSettings>({ deliveryFee: 20 });
 
   useEffect(() => {
-    // Fetch global store settings (e.g., dynamic delivery fee)
-    fetch('/api/settings')
-      .then(res => res.json())
-      .then(data => {
-        if (data && typeof data.deliveryFee === 'number') {
-          setSettings({ deliveryFee: data.deliveryFee });
+    async function fetchSettings() {
+      try {
+        const { data, error } = await supabase
+          .from('store_settings')
+          .select('setting_value')
+          .eq('setting_key', 'delivery_fee')
+          .single();
+
+        if (error) {
+          console.warn("Could not fetch settings from Supabase, using defaults.");
+        } else if (data && data.setting_value) {
+          setSettings({ deliveryFee: parseInt(data.setting_value) || 20 });
         }
-      })
-      .catch(err => console.error("Failed to load settings:", err));
+      } catch (err) {
+        console.error("Failed to load settings:", err);
+      }
+    }
+    fetchSettings();
   }, []);
 
   const addToCart = (product: Product) => {

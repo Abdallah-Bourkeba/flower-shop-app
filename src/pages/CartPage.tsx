@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabaseClient';
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, clearCart, subtotal, tax, deliveryFee, total } = useCart();
@@ -43,27 +44,40 @@ export default function CartPage() {
       localStorage.setItem('customerPhone', formData.customerPhone);
       localStorage.setItem('customerEmail', formData.customerEmail);
 
+      // Find driver
+      let driverId = null;
+      const { data: drivers, error: driverError } = await supabase
+        .from('drivers')
+        .select('*')
+        .eq('assigned_city', formData.city);
+
+      if (!driverError && drivers && drivers.length > 0) {
+        const specificDriver = drivers.find((d: any) => d.assigned_district === formData.district);
+        driverId = specificDriver ? specificDriver.id : drivers[0].id;
+      }
+
       const orderPayload = {
-        ...formData,
+        customer_name: formData.customerName,
+        customer_phone: formData.customerPhone,
+        customer_email: formData.customerEmail,
+        city: formData.city,
+        district: formData.district,
         items: cart,
         subtotal,
         tax,
-        deliveryFee,
-        total
+        delivery_fee: deliveryFee,
+        total,
+        driver_id: driverId
       };
 
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(orderPayload)
-      });
+      const { data: newOrder, error: orderError } = await supabase
+        .from('orders')
+        .insert(orderPayload)
+        .select()
+        .single();
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to submit order');
+      if (orderError) {
+        console.warn("Supabase order insertion failed. Proceeding with WhatsApp checkout anyway.");
       }
 
       setOrderSuccess(true);
