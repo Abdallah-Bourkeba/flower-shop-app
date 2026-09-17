@@ -44,7 +44,7 @@ export default function CartPage() {
       localStorage.setItem('customerPhone', formData.customerPhone);
       localStorage.setItem('customerEmail', formData.customerEmail);
 
-      // Find driver
+      // Find driver (optional)
       let driverId = null;
       const { data: drivers, error: driverError } = await supabase
         .from('drivers')
@@ -56,17 +56,17 @@ export default function CartPage() {
         driverId = specificDriver ? specificDriver.id : drivers[0].id;
       }
 
+      // 1. Insert into orders table
       const orderPayload = {
         customer_name: formData.customerName,
         customer_phone: formData.customerPhone,
-        customer_email: formData.customerEmail,
+        customer_email: formData.customerEmail || 'no-email@example.com',
         city: formData.city,
         district: formData.district,
-        items: cart,
-        subtotal,
-        tax,
-        delivery_fee: deliveryFee,
-        total,
+        subtotal: Number(subtotal),
+        tax: Number(tax),
+        delivery_fee: Number(deliveryFee),
+        total: Number(total),
         driver_id: driverId
       };
 
@@ -77,9 +77,33 @@ export default function CartPage() {
         .single();
 
       if (orderError) {
-        console.warn("Supabase order insertion failed. Proceeding with WhatsApp checkout anyway.");
+        console.error("Supabase Order Error:", orderError);
+        alert(`Order Failed: ${orderError.message} - ${orderError.details || 'No additional details'}`);
+        setIsSubmitting(false);
+        return; // STOP EXECUTION
       }
 
+      // 2. Insert into order_items table
+      const orderItemsPayload = cart.map(item => ({
+        order_id: newOrder.id,
+        product_id: item.id, // NOTE: If product_id in schema is UUID and item.id is '1', this will fail!
+        product_name: item.name,
+        quantity: item.quantity,
+        price: item.price
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItemsPayload);
+
+      if (itemsError) {
+        console.error("Supabase Order Items Error:", itemsError);
+        alert(`Order Items Failed: ${itemsError.message} - ${itemsError.details || 'No additional details'}\n\nNote: If this says invalid input syntax for type uuid, we need to alter your Supabase schema to use VARCHAR for product_id, or use real UUIDs for products.`);
+        setIsSubmitting(false);
+        return; // STOP EXECUTION
+      }
+
+      // 3. Success -> Clear Cart and Redirect to WhatsApp
       setOrderSuccess(true);
       clearCart();
 
@@ -95,6 +119,7 @@ export default function CartPage() {
       window.open(`https://wa.me/201555003818?text=${encodedMessage}`, '_blank');
       
     } catch (err: any) {
+      console.error("Unexpected error:", err);
       setError(err.message);
     } finally {
       setIsSubmitting(false);

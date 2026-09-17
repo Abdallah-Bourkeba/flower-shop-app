@@ -16,6 +16,23 @@ export interface CartItem extends Product {
 
 export interface StoreSettings {
   deliveryFee: number;
+  taxRate: number;
+}
+
+export interface Driver {
+  id: string;
+  name: string;
+  phone: string;
+  assigned_city: string;
+  assigned_district: string;
+}
+
+export interface Purchase {
+  id: string;
+  date: string;
+  description: string;
+  cost: number;
+  category: string;
 }
 
 export interface OrderDetails {

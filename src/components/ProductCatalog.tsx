@@ -120,7 +120,7 @@ export default function ProductCatalog() {
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-space-sm sm:gap-space-md lg:gap-space-lg">
         {filteredProducts.map(product => (
-          <article key={product.id} className="group flex flex-col bg-white/30 backdrop-blur-md border border-white/20 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
+          <article key={product.id} className="group flex flex-col bg-white/10 backdrop-blur-md border border-white/20 shadow-lg rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300">
             <div className="relative aspect-[4/5] w-full overflow-hidden bg-surface-container">
               <img className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" src={product.image_url} alt={product.name}/>
               
@@ -161,10 +161,12 @@ export default function ProductCatalog() {
 
             <button 
               onClick={() => handleAddToCart(product)}
-              className="w-full mt-auto py-3 bg-primary text-on-primary font-label-lg flex items-center justify-center gap-2 transition-all hover:bg-primary-container active:scale-95 rounded-b-xl"
+              className="w-full mt-auto py-3 bg-primary text-on-primary font-label-lg flex items-center justify-center gap-2 transition-all duration-150 hover:bg-primary-container active:scale-95 rounded-b-xl"
             >
-              <span className="material-symbols-outlined text-[20px]">add_shopping_cart</span>
-              أضف للسلة
+              <span className="material-symbols-outlined text-[20px]">
+                {toastMessage && toastMessage.includes(product.name) ? 'check' : 'add_shopping_cart'}
+              </span>
+              {toastMessage && toastMessage.includes(product.name) ? 'تمت الإضافة' : 'أضف للسلة'}
             </button>
           </article>
         ))}

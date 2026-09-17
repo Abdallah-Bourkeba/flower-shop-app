@@ -19,21 +19,25 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [settings, setSettings] = useState<StoreSettings>({ deliveryFee: 20 });
+  const [settings, setSettings] = useState<StoreSettings>({ deliveryFee: 20, taxRate: 15 });
 
   useEffect(() => {
     async function fetchSettings() {
       try {
         const { data, error } = await supabase
           .from('store_settings')
-          .select('setting_value')
-          .eq('setting_key', 'delivery_fee')
-          .single();
+          .select('setting_key, setting_value')
+          .in('setting_key', ['delivery_fee', 'tax_rate']);
 
         if (error) {
           console.warn("Could not fetch settings from Supabase, using defaults.");
-        } else if (data && data.setting_value) {
-          setSettings({ deliveryFee: parseInt(data.setting_value) || 20 });
+        } else if (data && data.length > 0) {
+          const newSettings = { deliveryFee: 20, taxRate: 15 };
+          data.forEach(item => {
+            if (item.setting_key === 'delivery_fee') newSettings.deliveryFee = parseFloat(item.setting_value) || 0;
+            if (item.setting_key === 'tax_rate') newSettings.taxRate = parseFloat(item.setting_value) || 0;
+          });
+          setSettings(newSettings);
         }
       } catch (err) {
         console.error("Failed to load settings:", err);
@@ -71,7 +75,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const clearCart = () => setCart([]);
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const tax = subtotal * 0.15;
+  const tax = subtotal * (settings.taxRate / 100);
   const deliveryFee = settings.deliveryFee;
   const total = subtotal + tax + deliveryFee;
 
