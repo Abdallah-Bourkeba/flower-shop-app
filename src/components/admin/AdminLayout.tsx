@@ -6,6 +6,7 @@ export default function AdminLayout() {
 
   const navItems = [
     { name: 'لوحة القيادة', path: '/admin', icon: 'dashboard' },
+    { name: 'الطلبات', path: '/admin/orders', icon: 'receipt' },
     { name: 'المنتجات', path: '/admin/products', icon: 'local_florist' },
     { name: 'المشتريات', path: '/admin/purchases', icon: 'receipt_long' },
     { name: 'المناديب', path: '/admin/drivers', icon: 'local_shipping' },

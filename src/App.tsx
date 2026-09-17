@@ -21,6 +21,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminDrivers from './pages/admin/AdminDrivers';
 import AdminPurchases from './pages/admin/AdminPurchases';
+import AdminOrders from './pages/admin/AdminOrders';
 import AdminSettings from './pages/admin/AdminSettings';
 
 function StoreLayout({ isDrawerOpen, setIsDrawerOpen, isProfileOpen, setIsProfileOpen }: any) {
@@ -77,6 +78,7 @@ export default function App() {
             </AdminProtectedRoute>
           }>
             <Route index element={<AdminDashboard />} />
+            <Route path="orders" element={<AdminOrders />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="drivers" element={<AdminDrivers />} />
             <Route path="purchases" element={<AdminPurchases />} />

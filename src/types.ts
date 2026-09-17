@@ -32,7 +32,32 @@ export interface Purchase {
   date: string;
   description: string;
   cost: number;
+  cost_ex_tax?: number;
+  tax_amount?: number;
   category: string;
+}
+
+export interface Order {
+  id: string;
+  customer_name: string;
+  customer_phone: string;
+  city: string;
+  district: string;
+  subtotal: number;
+  tax: number;
+  delivery_fee: number;
+  total: number;
+  status: string;
+  created_at: string;
+}
+
+export interface Refund {
+  id: string;
+  order_id: string;
+  amount_ex_tax: number;
+  tax_amount: number;
+  total_amount: number;
+  created_at: string;
 }
 
 export interface OrderDetails {

@@ -39,6 +39,8 @@ export default function AdminPurchases() {
     setCurrentPurchase({ 
       date: new Date().toISOString().split('T')[0], 
       description: '', 
+      cost_ex_tax: 0,
+      tax_amount: 0,
       cost: 0, 
       category: 'raw_flowers' 
     });
@@ -109,8 +111,38 @@ export default function AdminPurchases() {
                 <input required type="text" value={currentPurchase.description || ''} onChange={e => setCurrentPurchase({...currentPurchase, description: e.target.value})} className="w-full bg-surface-container px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
               </div>
               <div>
-                <label className="block font-label-md mb-2">التكلفة (ر.س)</label>
-                <input required type="number" step="0.01" value={currentPurchase.cost || ''} onChange={e => setCurrentPurchase({...currentPurchase, cost: Number(e.target.value)})} className="w-full bg-surface-container px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
+                <label className="block font-label-md mb-2">التكلفة بدون ضريبة (ر.س)</label>
+                <input 
+                  required 
+                  type="number" 
+                  step="0.01" 
+                  value={currentPurchase.cost_ex_tax || ''} 
+                  onChange={e => {
+                    const exTax = Number(e.target.value);
+                    const tax = currentPurchase.tax_amount || 0;
+                    setCurrentPurchase({...currentPurchase, cost_ex_tax: exTax, cost: exTax + tax});
+                  }} 
+                  className="w-full bg-surface-container px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" 
+                />
+              </div>
+              <div>
+                <label className="block font-label-md mb-2">قيمة الضريبة (ر.س)</label>
+                <input 
+                  required 
+                  type="number" 
+                  step="0.01" 
+                  value={currentPurchase.tax_amount || ''} 
+                  onChange={e => {
+                    const tax = Number(e.target.value);
+                    const exTax = currentPurchase.cost_ex_tax || 0;
+                    setCurrentPurchase({...currentPurchase, tax_amount: tax, cost: exTax + tax});
+                  }} 
+                  className="w-full bg-surface-container px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" 
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block font-label-md mb-2">التكلفة الإجمالية (ر.س) - محسوبة تلقائياً</label>
+                <input required type="number" step="0.01" value={currentPurchase.cost || 0} readOnly className="w-full bg-surface-container-high text-on-surface-variant px-4 py-2 rounded-lg cursor-not-allowed" />
               </div>
             </div>
 
@@ -133,7 +165,9 @@ export default function AdminPurchases() {
                   <th className="p-4 font-medium">التاريخ</th>
                   <th className="p-4 font-medium">الوصف</th>
                   <th className="p-4 font-medium">الفئة</th>
-                  <th className="p-4 font-medium">التكلفة</th>
+                  <th className="p-4 font-medium">بدون ضريبة</th>
+                  <th className="p-4 font-medium">الضريبة</th>
+                  <th className="p-4 font-medium">الإجمالي</th>
                   <th className="p-4 font-medium text-center">إجراءات</th>
                 </tr>
               </thead>
@@ -147,6 +181,8 @@ export default function AdminPurchases() {
                        purchase.category === 'packaging' ? 'تغليف' : 
                        purchase.category === 'utilities' ? 'فواتير' : 'أخرى'}
                     </td>
+                    <td className="p-4 text-on-surface-variant">{purchase.cost_ex_tax || 0}</td>
+                    <td className="p-4 text-on-surface-variant">{purchase.tax_amount || 0}</td>
                     <td className="p-4 font-bold text-error">{purchase.cost} ر.س</td>
                     <td className="p-4">
                       <div className="flex items-center justify-center gap-2">
