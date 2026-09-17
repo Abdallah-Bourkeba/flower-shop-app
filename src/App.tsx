@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -41,6 +41,14 @@ function StoreLayout({ isDrawerOpen, setIsDrawerOpen, isProfileOpen, setIsProfil
   );
 }
 
+function AdminProtectedRoute({ children }: { children: React.ReactNode }) {
+  const isAdmin = sessionStorage.getItem('isAdminLoggedin') === 'true';
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+  return children ? <>{children}</> : <Outlet />;
+}
+
 export default function App() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -63,7 +71,11 @@ export default function App() {
           </Route>
 
           {/* Admin Routes */}
-          <Route path="/admin" element={<AdminLayout />}>
+          <Route path="/admin" element={
+            <AdminProtectedRoute>
+              <AdminLayout />
+            </AdminProtectedRoute>
+          }>
             <Route index element={<AdminDashboard />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="drivers" element={<AdminDrivers />} />
